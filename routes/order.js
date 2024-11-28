@@ -122,34 +122,45 @@ router.get("/get-all-orders", authenticateToken, async (req, res) => {
 
 //updated order --admin
 router.put("/update-status/:id", authenticateToken, async (req, res) => {
-    try {
-      const { role } = req.user;
-      if (role !== "admin") {
-        return res.status(403).json({ message: "Access denied. Admins only." });
-      }
-  
-      const { id } = req.params;
-      const { status } = req.body;
-      const validStatuses = ["Order Placed", "Out for delivery", "Delivered", "Canceled"];
-      if (!validStatuses.includes(status)) {
-        return res.status(400).json({ message: `Invalid status. Valid statuses are: ${validStatuses.join(", ")}` });
-      }
-  
-      const updatedOrder = await Order.findByIdAndUpdate(
-        id,
-        { status },
-        { new: true }
-      );
-  
-      if (!updatedOrder) {
-        return res.status(404).json({ message: "Order not found." });
-      }
-  
-      res.status(200).json({ message: "Order status updated successfully.", order: updatedOrder });
-    } catch (error) {
-      console.error("Error updating order status:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { role } = req.user;
+    if (role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
     }
-  });
+
+    const { id } = req.params;
+    const { status } = req.body;
+    const validStatuses = ["Order Placed", "Out for delivery", "Delivered", "Canceled"];
+
+    if (!status) {
+      return res.status(400).json({ message: "Status is required." });
+    }
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        message: `Invalid status. Valid statuses are: ${validStatuses.join(", ")}`
+      });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    res.status(200).json({
+      message: "Order status updated successfully.",
+      order: updatedOrder
+    });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
+
 
 module.exports = router;

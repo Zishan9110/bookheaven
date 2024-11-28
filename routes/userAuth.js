@@ -6,7 +6,6 @@ const authenticateToken = (req, res, next) => {
         const authHeader = req.headers["authorization"];
         const token = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
 
-
         // Check if token is missing
         if (!token) {
             return res.status(401).json({ message: "Authentication token is required." });
